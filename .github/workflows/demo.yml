@@ -16,6 +16,8 @@ jobs:
       - name: Test code
         run: npm run test
   build:
+    outputs: #job output
+      script-file: ${{ steps.publish.outputs.script-file-output }} #context value
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +27,9 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build
+      - name: publish Js filename
+        id: publish
+        run: find dist/assets/*.js -type f -execdir echo 'script-file-output{} >>$GITHUB_OUTPUT' ';' #set our output value for this step, it targets a file special file created by github where its path stored in this variable
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with: 
@@ -44,5 +49,8 @@ jobs:
           name: dist files
       - name: Output content
         run: ls
+      - name: output filename # uses job output of the previous job
+        run: echo "${{ needs.build.outputs.script-file }}"
+       
       - name: Deploy
         run: echo "Deploying..."
